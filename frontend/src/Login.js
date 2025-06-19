@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export default function Login({ onGuest }) {
+export default function Login({ onGuest, onUserLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -18,6 +18,7 @@ export default function Login({ onGuest }) {
         const data = await res.json();
         localStorage.setItem("token", data.token);
         toast.success("Login successful!");
+        if (onUserLogin) onUserLogin();
       } else {
         toast.error("Invalid username or password");
       }
@@ -58,14 +59,30 @@ export default function Login({ onGuest }) {
             required
           />
         </div>
-        <button type="submit" className="btn btn-primary btn-lg w-100 rounded-3 shadow-sm fw-semibold mb-2">
+        <button
+          type="submit"
+          className="btn btn-primary btn-lg w-100 rounded-3 shadow-sm fw-semibold mb-2"
+        >
           Login
         </button>
-        <button onClick={handleGuest} className="btn btn-outline-secondary btn-lg w-100 rounded-3 shadow-sm fw-semibold" type="button">
+        <button
+          onClick={handleGuest}
+          className="btn btn-outline-secondary btn-lg w-100 rounded-3 shadow-sm fw-semibold"
+          type="button"
+        >
           Continue as Guest
         </button>
       </form>
-      <ToastContainer position="top-center" autoClose={2500} hideProgressBar newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
+      <ToastContainer
+        position="top-center"
+        autoClose={2500}
+        hideProgressBar
+        newestOnTop
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </>
   );
 }

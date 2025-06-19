@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export default function Register() {
+export default function Register({ onUserLogin }) {
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -13,7 +13,7 @@ export default function Register() {
     phone: "",
     address: "",
     location: "",
-    vatNumber: ""
+    vatNumber: "",
   });
   const [errors, setErrors] = useState({});
 
@@ -42,23 +42,27 @@ export default function Register() {
           phone: form.phone,
           address: form.address,
           location: form.location,
-          vatNumber: form.vatNumber
-        })
+          vatNumber: form.vatNumber,
+        }),
       });
       if (res.ok) {
-        toast.success("Registration successful! You can now log in.");
-        setForm({
-          username: "",
-          password: "",
-          confirmPassword: "",
-          firstName: "",
-          lastName: "",
-          email: "",
-          phone: "",
-          address: "",
-          location: "",
-          vatNumber: ""
+        // Auto-login after successful registration
+        const loginRes = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: form.username,
+            password: form.password,
+          }),
         });
+        if (loginRes.ok) {
+          const data = await loginRes.json();
+          localStorage.setItem("token", data.token);
+          toast.success("Registration & login successful!");
+          if (onUserLogin) onUserLogin();
+        } else {
+          toast.success("Registration successful! Please log in.");
+        }
       } else {
         const data = await res.json();
         setErrors(data);
@@ -75,45 +79,144 @@ export default function Register() {
         <h2 className="mb-4 text-center fw-bold">Register</h2>
         <div className="row g-3">
           <div className="col-12">
-            <input name="username" className="form-control form-control-lg rounded-3" placeholder="Username" value={form.username} onChange={handleChange} required />
-            {errors.username && <div className="text-danger small ms-1 mt-1">{errors.username}</div>}
+            <input
+              name="username"
+              className="form-control form-control-lg rounded-3"
+              placeholder="Username"
+              value={form.username}
+              onChange={handleChange}
+              required
+            />
+            {errors.username && (
+              <div className="text-danger small ms-1 mt-1">
+                {errors.username}
+              </div>
+            )}
           </div>
           <div className="col-md-6">
-            <input name="password" type="password" className="form-control form-control-lg rounded-3" placeholder="Password" value={form.password} onChange={handleChange} required />
+            <input
+              name="password"
+              type="password"
+              className="form-control form-control-lg rounded-3"
+              placeholder="Password"
+              value={form.password}
+              onChange={handleChange}
+              required
+            />
           </div>
           <div className="col-md-6">
-            <input name="confirmPassword" type="password" className="form-control form-control-lg rounded-3" placeholder="Confirm Password" value={form.confirmPassword} onChange={handleChange} required />
-            {errors.confirmPassword && <div className="text-danger small ms-1 mt-1">{errors.confirmPassword}</div>}
+            <input
+              name="confirmPassword"
+              type="password"
+              className="form-control form-control-lg rounded-3"
+              placeholder="Confirm Password"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              required
+            />
+            {errors.confirmPassword && (
+              <div className="text-danger small ms-1 mt-1">
+                {errors.confirmPassword}
+              </div>
+            )}
           </div>
           <div className="col-md-6">
-            <input name="firstName" className="form-control form-control-lg rounded-3" placeholder="First Name" value={form.firstName} onChange={handleChange} required />
+            <input
+              name="firstName"
+              className="form-control form-control-lg rounded-3"
+              placeholder="First Name"
+              value={form.firstName}
+              onChange={handleChange}
+              required
+            />
           </div>
           <div className="col-md-6">
-            <input name="lastName" className="form-control form-control-lg rounded-3" placeholder="Last Name" value={form.lastName} onChange={handleChange} required />
+            <input
+              name="lastName"
+              className="form-control form-control-lg rounded-3"
+              placeholder="Last Name"
+              value={form.lastName}
+              onChange={handleChange}
+              required
+            />
           </div>
           <div className="col-12">
-            <input name="email" type="email" className="form-control form-control-lg rounded-3" placeholder="Email" value={form.email} onChange={handleChange} required />
-            {errors.email && <div className="text-danger small ms-1 mt-1">{errors.email}</div>}
+            <input
+              name="email"
+              type="email"
+              className="form-control form-control-lg rounded-3"
+              placeholder="Email"
+              value={form.email}
+              onChange={handleChange}
+              required
+            />
+            {errors.email && (
+              <div className="text-danger small ms-1 mt-1">{errors.email}</div>
+            )}
           </div>
           <div className="col-md-6">
-            <input name="phone" className="form-control form-control-lg rounded-3" placeholder="Phone" value={form.phone} onChange={handleChange} required />
+            <input
+              name="phone"
+              className="form-control form-control-lg rounded-3"
+              placeholder="Phone"
+              value={form.phone}
+              onChange={handleChange}
+              required
+            />
           </div>
           <div className="col-md-6">
-            <input name="address" className="form-control form-control-lg rounded-3" placeholder="Address" value={form.address} onChange={handleChange} required />
+            <input
+              name="address"
+              className="form-control form-control-lg rounded-3"
+              placeholder="Address"
+              value={form.address}
+              onChange={handleChange}
+              required
+            />
           </div>
           <div className="col-md-6">
-            <input name="location" className="form-control form-control-lg rounded-3" placeholder="Location" value={form.location} onChange={handleChange} required />
+            <input
+              name="location"
+              className="form-control form-control-lg rounded-3"
+              placeholder="Location"
+              value={form.location}
+              onChange={handleChange}
+              required
+            />
           </div>
           <div className="col-md-6">
-            <input name="vatNumber" className="form-control form-control-lg rounded-3" placeholder="VAT Number" value={form.vatNumber} onChange={handleChange} required />
-            {errors.vatNumber && <div className="text-danger small ms-1 mt-1">{errors.vatNumber}</div>}
+            <input
+              name="vatNumber"
+              className="form-control form-control-lg rounded-3"
+              placeholder="VAT Number"
+              value={form.vatNumber}
+              onChange={handleChange}
+              required
+            />
+            {errors.vatNumber && (
+              <div className="text-danger small ms-1 mt-1">
+                {errors.vatNumber}
+              </div>
+            )}
           </div>
         </div>
-        <button type="submit" className="btn btn-success btn-lg w-100 rounded-3 shadow-sm fw-semibold mt-4">
+        <button
+          type="submit"
+          className="btn btn-success btn-lg w-100 rounded-3 shadow-sm fw-semibold mt-4"
+        >
           Register
         </button>
       </form>
-      <ToastContainer position="top-center" autoClose={2500} hideProgressBar newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
+      <ToastContainer
+        position="top-center"
+        autoClose={2500}
+        hideProgressBar
+        newestOnTop
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </>
   );
 }
