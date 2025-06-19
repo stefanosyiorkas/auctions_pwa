@@ -17,7 +17,23 @@ export default function AuctionForm({ onSubmit }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Convert startingPrice to number
-    onSubmit({ ...form, startingPrice: parseFloat(form.startingPrice) });
+    // Convert started and ends to ISO string with local timezone offset
+    const convertToLocalIso = (val) => {
+      if (!val) return "";
+      const date = new Date(val);
+      // Get offset in format +HH:MM or -HH:MM
+      const offset = -date.getTimezoneOffset();
+      const sign = offset >= 0 ? "+" : "-";
+      const pad = (n) => String(Math.floor(Math.abs(n))).padStart(2, "0");
+      const offsetStr = sign + pad(offset / 60) + ":" + pad(offset % 60);
+      return date.toISOString().slice(0, 19) + offsetStr;
+    };
+    onSubmit({
+      ...form,
+      startingPrice: parseFloat(form.startingPrice),
+      started: convertToLocalIso(form.started),
+      ends: convertToLocalIso(form.ends),
+    });
   };
 
   return (

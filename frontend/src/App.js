@@ -5,6 +5,8 @@ import Auctions from "./Auctions";
 import ManageAuctions from "./ManageAuctions";
 import CreateAuction from "./CreateAuction";
 import AuctionDetails from "./AuctionDetails";
+import MessagesScreen from "./MessagesScreen";
+import MessageCompose from "./MessageCompose";
 import {
   BrowserRouter as Router,
   Routes,
@@ -14,6 +16,14 @@ import {
 
 function MainApp({ role, handleLogout }) {
   const navigate = useNavigate();
+  // Helper to get cookie value by name
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return null;
+  }
+  const username = getCookie("username");
   return (
     <div className="container-fluid min-vh-100 bg-light p-0">
       <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
@@ -25,7 +35,12 @@ function MainApp({ role, handleLogout }) {
           >
             Auction PWA
           </span>
-          <div>
+          <div className="d-flex align-items-center gap-3">
+            {role === "user" && username && (
+              <span className="text-secondary small">
+                Welcome, <b>{username}</b>!
+              </span>
+            )}
             {role === "user" && (
               <>
                 <button
@@ -63,10 +78,21 @@ function MainApp({ role, handleLogout }) {
           />
           <Route path="/manage" element={<ManageAuctions />} />
           <Route path="/create" element={<CreateAuction />} />
+          <Route path="/messages" element={<MessagesScreen />} />
+          <Route
+            path="/messages/compose/:recipient/:auctionId"
+            element={<MessageComposeWrapper />}
+          />
         </Routes>
       </main>
     </div>
   );
+}
+
+// Add a wrapper for MessageCompose to get params
+function MessageComposeWrapper() {
+  const { recipient, auctionId } = require("react-router-dom").useParams();
+  return <MessageCompose recipient={recipient} auctionId={auctionId} />;
 }
 
 export default function App() {

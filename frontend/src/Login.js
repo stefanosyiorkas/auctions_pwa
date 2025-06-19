@@ -17,6 +17,7 @@ export default function Login({ onGuest, onUserLogin }) {
       if (res.ok) {
         const data = await res.json();
         localStorage.setItem("token", data.token);
+        document.cookie = `username=${encodeURIComponent(username)}; path=/;`; // Store username in cookie
         toast.success("Login successful!");
         if (onUserLogin) onUserLogin();
       } else {

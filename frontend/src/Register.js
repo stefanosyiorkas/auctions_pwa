@@ -58,6 +58,9 @@ export default function Register({ onUserLogin }) {
         if (loginRes.ok) {
           const data = await loginRes.json();
           localStorage.setItem("token", data.token);
+          document.cookie = `username=${encodeURIComponent(
+            form.username
+          )}; path=/;`; // Store username in cookie
           toast.success("Registration & login successful!");
           if (onUserLogin) onUserLogin();
         } else {
