@@ -176,21 +176,10 @@ export default function Auctions({ canCreate }) {
             <div className="col-12 text-center">No auctions found.</div>
           )}
           {filteredAuctions.map((auction) => {
-            // Robustly parse auction.ends for timezone issues
             let endsDate;
             if (auction.ends) {
-              if (/Z$|[+-]\d{2}:?\d{2}$/.test(auction.ends)) {
-                // Already has timezone info
-                endsDate = new Date(auction.ends);
-              } else if (
-                /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(auction.ends)
-              ) {
-                // No timezone, treat as UTC
-                endsDate = new Date(auction.ends + "Z");
-              } else {
-                // Fallback: try native parsing
-                endsDate = new Date(auction.ends);
-              }
+              // Always let the browser handle the timezone, do not add 'Z' or parse manually
+              endsDate = new Date(auction.ends);
             }
             const isClosed = endsDate && Date.now() > endsDate.getTime();
             // Find winner username using auctionBids
@@ -243,6 +232,24 @@ export default function Auctions({ canCreate }) {
                       CLOSED
                     </div>
                   )}
+                  {/* Debug info for auction end time */}
+                  {auction.ends && (
+                    <div
+                      style={{
+                        fontSize: "0.8em",
+                        color: "#888",
+                        padding: "0.25rem 0.5rem",
+                      }}
+                    >
+                      [DEBUG] ends: {auction.ends}
+                      <br />
+                      parsed: {endsDate ? endsDate.toString() : "N/A"}
+                      <br />
+                      now: {new Date().toString()}
+                      <br />
+                      isClosed: {isClosed ? "true" : "false"}
+                    </div>
+                  )}
                   {/* Winner badge */}
                   {isClosed &&
                     winnerUsername &&
@@ -291,7 +298,18 @@ export default function Auctions({ canCreate }) {
                     <div>Seller: {auction.sellerUserId}</div>
                     <div className="mt-2">{auction.description}</div>
                     <div className="mt-2 small text-muted">
-                      Started: {auction.started} | Ends: {auction.ends}
+                      Started:{" "}
+                      {auction.started
+                        ? new Date(
+                            auction.started.replace(" ", "T")
+                          ).toLocaleString()
+                        : "-"}{" "}
+                      | Ends:{" "}
+                      {auction.ends
+                        ? new Date(
+                            auction.ends.replace(" ", "T")
+                          ).toLocaleString()
+                        : "-"}
                     </div>
                     <button
                       className="btn btn-outline-primary mt-3"

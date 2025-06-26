@@ -5,102 +5,104 @@ import { useNavigate } from "react-router-dom";
 const API_BASE = "/api/messages";
 
 export default function MessagesScreen() {
-  const [tab, setTab] = useState("inbox");
-  const [inbox, setInbox] = useState([]);
-  const [sent, setSent] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newCount, setNewCount] = useState(0);
+  const [conversations, setConversations] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchMessages();
-    // eslint-disable-next-line
-  }, [tab]);
-
-  const fetchMessages = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      if (tab === "inbox") {
-        const res = await fetch(`${API_BASE}/inbox`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-        const data = await res.json();
-        setInbox(data);
-        setNewCount(data.filter((m) => !m.isRead).length);
-      } else {
-        const res = await fetch(`${API_BASE}/sent`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-        const data = await res.json();
-        setSent(data);
+    const fetchConversations = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        // Fetch all messages (inbox + sent)
+        const [inboxRes, sentRes] = await Promise.all([
+          fetch(`${API_BASE}/inbox`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          }),
+          fetch(`${API_BASE}/sent`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          }),
+        ]);
+        const inboxData = await inboxRes.json();
+        const sentData = await sentRes.json();
+        // Build conversation map: { auctionId, otherUser, lastMessage, unreadCount }
+        const map = new Map();
+        const currentUser = localStorage.getItem("username") || "";
+        const all = [...inboxData, ...sentData];
+        all.forEach((msg) => {
+          const otherUser =
+            msg.sender === currentUser ? msg.recipient : msg.sender;
+          const key = `${msg.auctionId}|${otherUser}`;
+          if (!map.has(key)) {
+            map.set(key, {
+              auctionId: msg.auctionId,
+              otherUser,
+              lastMessage: msg,
+              unreadCount: 0,
+            });
+          }
+          // Count unread only for inbox messages
+          if (!msg.isRead && msg.recipient === currentUser) {
+            map.get(key).unreadCount++;
+          }
+          // Update lastMessage if newer
+          if (msg.timestamp > map.get(key).lastMessage.timestamp) {
+            map.get(key).lastMessage = msg;
+          }
+        });
+        setConversations(
+          Array.from(map.values()).sort((a, b) =>
+            b.lastMessage.timestamp.localeCompare(a.lastMessage.timestamp)
+          )
+        );
+        setNewCount(
+          Array.from(map.values()).reduce((sum, c) => sum + c.unreadCount, 0)
+        );
+      } catch (err) {
+        toast.error("Failed to fetch conversations");
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      toast.error("Failed to fetch messages");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this message?")) return;
-    try {
-      const token = localStorage.getItem("token");
-      await fetch(`${API_BASE}/${id}`, {
-        method: "DELETE",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      fetchMessages();
-    } catch {
-      toast.error("Failed to delete message");
-    }
-  };
+    };
+    fetchConversations();
+    // eslint-disable-next-line
+  }, []);
 
   return (
     <div className="container py-5">
       <ToastContainer position="top-center" autoClose={3000} />
       <h2 className="fw-bold mb-4">Messages</h2>
-      <ul className="nav nav-tabs mb-3">
-        <li className="nav-item">
-          <button className={`nav-link${tab === "inbox" ? " active" : ""}`} onClick={() => setTab("inbox")}>Inbox {newCount > 0 && <span className="badge bg-danger ms-1">{newCount}</span>}</button>
-        </li>
-        <li className="nav-item">
-          <button className={`nav-link${tab === "sent" ? " active" : ""}`} onClick={() => setTab("sent")}>Sent</button>
-        </li>
-      </ul>
       {loading ? (
-        <div>Loading messages...</div>
-      ) : tab === "inbox" ? (
-        <ul className="list-group">
-          {inbox.length === 0 && <li className="list-group-item">No messages.</li>}
-          {inbox.map((msg) => (
-            <li
-              className="list-group-item d-flex justify-content-between align-items-center list-group-item-action"
-              key={msg.id}
-              style={{ cursor: 'pointer' }}
-              onClick={() => navigate(`/messages/compose/${msg.sender}/${msg.auctionId}`)}
-            >
-              <div>
-                <b>From:</b> {msg.sender} <span className="text-muted small">Auction #{msg.auctionId}</span>
-                <div>{msg.content}</div>
-                <div className="small text-muted">{msg.timestamp}</div>
-              </div>
-              <button className="btn btn-sm btn-danger" onClick={e => { e.stopPropagation(); handleDelete(msg.id); }}>Delete</button>
-            </li>
-          ))}
-        </ul>
+        <div>Loading conversations...</div>
+      ) : conversations.length === 0 ? (
+        <div>No conversations.</div>
       ) : (
         <ul className="list-group">
-          {sent.length === 0 && <li className="list-group-item">No messages.</li>}
-          {sent.map((msg) => (
+          {conversations.map((conv) => (
             <li
               className="list-group-item d-flex justify-content-between align-items-center list-group-item-action"
-              key={msg.id}
-              style={{ cursor: 'pointer' }}
-              onClick={() => navigate(`/messages/compose/${msg.recipient}/${msg.auctionId}`)}
+              key={conv.auctionId + "|" + conv.otherUser}
+              style={{ cursor: "pointer" }}
+              onClick={() =>
+                navigate(
+                  `/messages/compose/${conv.otherUser}/${conv.auctionId}`
+                )
+              }
             >
               <div>
-                <b>To:</b> {msg.recipient} <span className="text-muted small">Auction #{msg.auctionId}</span>
-                <div>{msg.content}</div>
-                <div className="small text-muted">{msg.timestamp}</div>
+                <b>{conv.otherUser}</b>{" "}
+                <span className="text-muted small">
+                  Auction #{conv.auctionId}
+                </span>
+                <div>{conv.lastMessage.content}</div>
+                <div className="small text-muted">
+                  {conv.lastMessage.timestamp}
+                </div>
               </div>
-              <button className="btn btn-sm btn-danger" onClick={e => { e.stopPropagation(); handleDelete(msg.id); }}>Delete</button>
+              {conv.unreadCount > 0 && (
+                <span className="badge bg-danger ms-1">{conv.unreadCount}</span>
+              )}
             </li>
           ))}
         </ul>

@@ -122,4 +122,12 @@ public class MessageController {
         messageService.deleteMessage(id, username);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/read")
+    public ResponseEntity<?> markAsRead(@PathVariable Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        messageService.markAsRead(id, username);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -106,16 +106,8 @@ export default function AuctionDetails({ isAuthenticated }) {
     if (!auction || !auction.ends) return false;
     let endsDate;
     try {
-      if (/Z$|[+-]\d{2}:?\d{2}$/.test(auction.ends)) {
-        // Already has timezone info
-        endsDate = new Date(auction.ends);
-      } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(auction.ends)) {
-        // No timezone, treat as UTC
-        endsDate = new Date(auction.ends + "Z");
-      } else {
-        // Fallback: try native parsing
-        endsDate = new Date(auction.ends);
-      }
+      // Always let the browser handle the timezone
+      endsDate = new Date(auction.ends);
       // Debug info for troubleshooting end time parsing
       console.log(
         "[DEBUG] AuctionDetails:",
@@ -213,7 +205,14 @@ export default function AuctionDetails({ isAuthenticated }) {
           <div>Seller: {auction.sellerUserId}</div>
           <div className="mt-2">{auction.description}</div>
           <div className="mt-2 small text-muted">
-            Started: {auction.started} | Ends: {auction.ends}
+            Started:{" "}
+            {auction.started
+              ? new Date(auction.started.replace(" ", "T")).toLocaleString()
+              : "-"}{" "}
+            | Ends:{" "}
+            {auction.ends
+              ? new Date(auction.ends.replace(" ", "T")).toLocaleString()
+              : "-"}
           </div>
         </div>
       </div>

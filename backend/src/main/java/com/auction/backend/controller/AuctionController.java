@@ -14,6 +14,13 @@ import com.auction.backend.service.UserService;
 import com.auction.backend.entity.User;
 import com.auction.backend.dto.AuctionDTO;
 
+import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+
 @RestController
 @RequestMapping("/api/auctions")
 public class AuctionController {
@@ -61,6 +68,17 @@ public class AuctionController {
 
     @PostMapping
     public Auction createAuction(@RequestBody Auction auction) {
+        // Validate end time is in the future (parse as local date time)
+        try {
+            LocalDateTime ends = LocalDateTime.parse(auction.getEnds(), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            // Store as 'yyyy-MM-ddTHH:mm' string
+            auction.setEnds(ends.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")));
+            if (ends.isBefore(LocalDateTime.now())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "End time must be in the future");
+            }
+        } catch (DateTimeParseException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid end time format");
+        }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         User user = userService.findByUsername(username);

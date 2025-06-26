@@ -20,7 +20,7 @@ export default function AuctionChat() {
   function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
+    if (parts.length === 2) return parts.pop().split(";").shift();
     return null;
   }
   const currentUser = getCookie("username");
@@ -38,11 +38,14 @@ export default function AuctionChat() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE}/thread?auctionId=${auctionId}&user=${recipient}`, {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
+      const res = await fetch(
+        `${API_BASE}/thread?auctionId=${auctionId}&user=${recipient}`,
+        {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        }
+      );
       if (!res.ok) throw new Error("Failed to fetch messages");
       const data = await res.json();
       setMessages(data);
@@ -51,7 +54,10 @@ export default function AuctionChat() {
     } finally {
       setLoading(false);
       // Scroll to bottom
-      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+      setTimeout(
+        () => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }),
+        100
+      );
     }
   };
 
@@ -60,11 +66,11 @@ export default function AuctionChat() {
     const fetchAuctionAndBids = async () => {
       try {
         const auctionRes = await fetch(`/api/auctions/${auctionId}`);
-        if (!auctionRes.ok) throw new Error('Failed to fetch auction');
+        if (!auctionRes.ok) throw new Error("Failed to fetch auction");
         const auctionData = await auctionRes.json();
         setAuction(auctionData);
         const bidsRes = await fetch(`/api/auctions/${auctionId}/bids`);
-        if (!bidsRes.ok) throw new Error('Failed to fetch bids');
+        if (!bidsRes.ok) throw new Error("Failed to fetch bids");
         const bidsData = await bidsRes.json();
         setBids(bidsData);
         // Check if auction is closed
@@ -72,8 +78,10 @@ export default function AuctionChat() {
         if (auctionData.ends) {
           if (/Z$|[+-]\d{2}:?\d{2}$/.test(auctionData.ends)) {
             endsDate = new Date(auctionData.ends);
-          } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(auctionData.ends)) {
-            endsDate = new Date(auctionData.ends + 'Z');
+          } else if (
+            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(auctionData.ends)
+          ) {
+            endsDate = new Date(auctionData.ends + "Z");
           } else {
             endsDate = new Date(auctionData.ends);
           }
@@ -104,6 +112,23 @@ export default function AuctionChat() {
     // eslint-disable-next-line
   }, [auctionId, currentUser]);
 
+  // Mark all unread messages as read when viewing the chat
+  useEffect(() => {
+    const markAllAsRead = async () => {
+      const token = localStorage.getItem("token");
+      for (const msg of messages) {
+        if (!msg.isRead && msg.recipient === currentUser) {
+          await fetch(`/api/messages/${msg.id}/read`, {
+            method: "POST",
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+        }
+      }
+    };
+    if (messages.length > 0) markAllAsRead();
+    // eslint-disable-next-line
+  }, [messages]);
+
   useEffect(() => {
     return () => {
       toast.dismiss(); // Clear all toasts on unmount
@@ -121,7 +146,11 @@ export default function AuctionChat() {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ recipient, auctionId: Number(auctionId), content }),
+        body: JSON.stringify({
+          recipient,
+          auctionId: Number(auctionId),
+          content,
+        }),
       });
       if (!res.ok) {
         const msg = await res.text();
@@ -153,17 +182,27 @@ export default function AuctionChat() {
             messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`mb-2 d-flex ${msg.sender === currentUser ? "justify-content-end" : "justify-content-start"}`}
+                className={`mb-2 d-flex ${
+                  msg.sender === currentUser
+                    ? "justify-content-end"
+                    : "justify-content-start"
+                }`}
               >
                 <div
-                  className={`p-2 rounded ${msg.sender === currentUser ? "bg-primary text-white" : "bg-light border"}`}
+                  className={`p-2 rounded ${
+                    msg.sender === currentUser
+                      ? "bg-primary text-white"
+                      : "bg-light border"
+                  }`}
                   style={{ maxWidth: "70%" }}
                 >
                   <div className="small fw-bold mb-1">
                     {msg.sender === currentUser ? "You" : msg.sender}
                   </div>
                   <div>{msg.content}</div>
-                  <div className="small text-end text-muted mt-1">{msg.timestamp}</div>
+                  <div className="small text-end text-muted mt-1">
+                    {msg.timestamp}
+                  </div>
                 </div>
               </div>
             ))
@@ -179,18 +218,32 @@ export default function AuctionChat() {
           onChange={(e) => setContent(e.target.value)}
           required
           disabled={sending || !canSend}
-          placeholder={canSend ? "Type your message..." : "You can only message the seller if you are the winner and the auction has ended."}
+          placeholder={
+            canSend
+              ? "Type your message..."
+              : "You can only message the seller if you are the winner and the auction has ended."
+          }
         />
-        <button className="btn btn-primary" type="submit" disabled={sending || !content || !canSend}>
+        <button
+          className="btn btn-primary"
+          type="submit"
+          disabled={sending || !content || !canSend}
+        >
           Send
         </button>
-        <button className="btn btn-secondary" type="button" onClick={() => navigate(-1)} disabled={sending}>
+        <button
+          className="btn btn-secondary"
+          type="button"
+          onClick={() => navigate(-1)}
+          disabled={sending}
+        >
           Back
         </button>
       </form>
       {!canSend && (
         <div className="alert alert-warning mt-3">
-          You can only message the other party if you are the winner or seller and the auction has ended.
+          You can only message the other party if you are the winner or seller
+          and the auction has ended.
         </div>
       )}
     </div>

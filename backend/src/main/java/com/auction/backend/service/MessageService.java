@@ -47,4 +47,12 @@ public class MessageService {
             !(user1.equals(m.getRecipient()) && m.isDeletedByRecipient())
         ).toList();
     }
+
+    public void markAsRead(Long id, String username) {
+        Message msg = messageRepository.findById(id).orElse(null);
+        if (msg != null && username.equals(msg.getRecipient()) && !msg.isRead()) {
+            msg.setRead(true);
+            messageRepository.save(msg);
+        }
+    }
 }
