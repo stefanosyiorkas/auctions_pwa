@@ -256,28 +256,7 @@ export default function Auctions({ canCreate }) {
                     </div>
                   )} */}
                   {/* Winner badge */}
-                  {isClosed &&
-                    winnerUsername &&
-                    currentUser &&
-                    winnerUsername === currentUser && (
-                      <span
-                        style={{
-                          position: "absolute",
-                          top: isClosed ? "2.2rem" : "0.5rem",
-                          right: "0.5rem",
-                          background: "#198754",
-                          color: "white",
-                          padding: "0.25rem 0.75rem",
-                          borderRadius: "1rem",
-                          fontWeight: "bold",
-                          zIndex: 3,
-                          fontSize: "0.95rem",
-                          boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-                        }}
-                      >
-                        You Won
-                      </span>
-                    )}
+                  {/* (You Won badge removed as requested) */}
                   <div
                     className="card-body"
                     style={{ paddingTop: isClosed ? "2.5rem" : undefined }}

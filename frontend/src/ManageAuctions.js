@@ -149,6 +149,11 @@ export default function ManageAuctions() {
                       Auction active
                     </div>
                   )}
+                  {!isAuctionActive(auction) && new Date(auction.ends) < new Date() && (
+                    <div className="text-danger fw-bold mt-2">
+                      Auction ended
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

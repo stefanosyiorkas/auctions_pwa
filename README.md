@@ -31,6 +31,3 @@ A full-stack Auction Progressive Web App (PWA) with a modern, responsive UI and 
 ## Project Structure
 - `frontend/` — React app (UI, authentication, guest mode)
 - `backend/` — Spring Boot app (API, JWT, user management)
-
----
-Feel free to extend this README with setup, usage, and contribution instructions as the project grows.
