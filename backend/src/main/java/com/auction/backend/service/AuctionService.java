@@ -29,11 +29,21 @@ public class AuctionService {
         Optional<Auction> auctionOpt = auctionRepository.findById(id);
         if (auctionOpt.isPresent()) {
             Auction auction = auctionOpt.get();
-            // Only allow delete if auction has not started
+            // Only allow delete if auction has not started (current date < started)
             if (auction.getStarted() == null || auction.getStarted().isEmpty()) {
                 auctionRepository.deleteById(id);
             } else {
-                throw new IllegalStateException("Cannot delete auction that has started");
+                try {
+                    java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                    java.time.LocalDateTime start = java.time.LocalDateTime.parse(auction.getStarted());
+                    if (now.isBefore(start)) {
+                        auctionRepository.deleteById(id);
+                    } else {
+                        throw new IllegalStateException("Cannot delete auction that has started");
+                    }
+                } catch (Exception e) {
+                    throw new IllegalStateException("Invalid start date format");
+                }
             }
         }
     }

@@ -232,7 +232,7 @@ export default function Auctions({ canCreate }) {
                       CLOSED
                     </div>
                   )}
-                  {/* Debug info for auction end time */}
+                  {/* Debug info for auction end time
                   {auction.ends && (
                     <div
                       style={{
@@ -249,7 +249,7 @@ export default function Auctions({ canCreate }) {
                       <br />
                       isClosed: {isClosed ? "true" : "false"}
                     </div>
-                  )}
+                  )} */}
                   {/* Winner badge */}
                   {isClosed &&
                     winnerUsername &&

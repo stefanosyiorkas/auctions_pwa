@@ -230,7 +230,15 @@ export default function AuctionDetails({ isAuthenticated }) {
               <span>
                 Amount: <b>{bid.amount}</b>
               </span>
-              <span className="text-muted small">{bid.timestamp}</span>
+              <span className="text-muted small">
+                {bid.timestamp
+                  ? new Date(
+                      bid.timestamp
+                        .replace(" ", "T")
+                        .replace(/\.(\d{3})\d*/, ".$1")
+                    ).toLocaleString()
+                  : "-"}
+              </span>
             </li>
           ))}
         </ul>

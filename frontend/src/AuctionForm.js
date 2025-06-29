@@ -1,11 +1,18 @@
 import React, { useState } from "react";
 
 export default function AuctionForm({ onSubmit }) {
-  // Set default started to now, ends to 1 day in the future
+  // Set default started to now (local), ends to 1 day in the future (local)
+  function toLocalDatetimeValue(date) {
+    // Returns YYYY-MM-DDTHH:mm in local time for datetime-local input
+    const pad = (n) => n.toString().padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+      date.getDate()
+    )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
   const now = new Date();
-  const defaultStarted = now.toISOString().slice(0, 16);
-  now.setDate(now.getDate() + 1);
-  const defaultEnds = now.toISOString().slice(0, 16);
+  const defaultStarted = toLocalDatetimeValue(now);
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const defaultEnds = toLocalDatetimeValue(tomorrow);
 
   const [form, setForm] = useState({
     name: "",

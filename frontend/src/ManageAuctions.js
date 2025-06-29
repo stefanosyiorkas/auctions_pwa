@@ -38,18 +38,37 @@ export default function ManageAuctions() {
     );
   };
 
+  // Helper to check if auction is active
+  const isAuctionActive = (auction) => {
+    const now = new Date();
+    const start = new Date(auction.started);
+    const end = new Date(auction.ends);
+    return now >= start && now <= end;
+  };
+
   // Only allow delete if auction has not started
-  const canDelete = (auction) => !auction.started;
+  const canDelete = (auction) => {
+    const now = new Date();
+    const start = new Date(auction.started);
+    return now < start;
+  };
 
   const handleDelete = async () => {
     if (selected.length === 0) return;
     // Check if any selected auction cannot be deleted
-    const undeletable = auctions.filter((a) => selected.includes(a.id) && !canDelete(a));
+    const undeletable = auctions.filter(
+      (a) => selected.includes(a.id) && !canDelete(a)
+    );
     if (undeletable.length > 0) {
       alert("You cannot delete auctions that have started.");
       return;
     }
-    if (!window.confirm("Are you sure you want to delete the selected auction(s)?")) return;
+    if (
+      !window.confirm(
+        "Are you sure you want to delete the selected auction(s)?"
+      )
+    )
+      return;
     try {
       const token = localStorage.getItem("token");
       for (const id of selected) {
@@ -81,10 +100,16 @@ export default function ManageAuctions() {
         <div className="text-danger">{error}</div>
       ) : (
         <div className="row g-4">
-          {auctions.length === 0 && <div className="col-12 text-center">No auctions found.</div>}
+          {auctions.length === 0 && (
+            <div className="col-12 text-center">No auctions found.</div>
+          )}
           {auctions.map((auction) => (
             <div className="col-md-6 col-lg-4" key={auction.id}>
-              <div className={`card h-100 shadow-sm${selected.includes(auction.id) ? " border-danger" : ""}`}>
+              <div
+                className={`card h-100 shadow-sm${
+                  selected.includes(auction.id) ? " border-danger" : ""
+                }`}
+              >
                 <div className="card-body">
                   <div className="form-check float-end">
                     <input
@@ -97,18 +122,32 @@ export default function ManageAuctions() {
                   </div>
                   <h5 className="card-title fw-bold">{auction.name}</h5>
                   <div className="mb-2 text-muted small">
-                    Categories: {Array.isArray(auction.categories) ? auction.categories.join(", ") : auction.categories}
+                    Categories:{" "}
+                    {Array.isArray(auction.categories)
+                      ? auction.categories.join(", ")
+                      : auction.categories}
                   </div>
-                  <div>Current Price: <b>{auction.startingPrice ?? '-'}</b></div>
-                  <div>Location: {auction.location}, {auction.country}</div>
+                  <div>
+                    Current Price: <b>{auction.startingPrice ?? "-"}</b>
+                  </div>
+                  <div>
+                    Location: {auction.location}, {auction.country}
+                  </div>
                   <div>Seller: {auction.sellerUserId}</div>
                   <div className="mt-2">{auction.description}</div>
-                  <div className="mt-2 small text-muted">Started: {auction.started} | Ends: {auction.ends}</div>
-                  <button className="btn btn-outline-primary mt-3" onClick={() => navigate(`/auctions/${auction.id}`)}>
+                  <div className="mt-2 small text-muted">
+                    Started: {auction.started} | Ends: {auction.ends}
+                  </div>
+                  <button
+                    className="btn btn-outline-primary mt-3"
+                    onClick={() => navigate(`/auctions/${auction.id}`)}
+                  >
                     View Details
                   </button>
-                  {!canDelete(auction) && (
-                    <div className="text-success fw-bold mt-2">Auction active</div>
+                  {isAuctionActive(auction) && (
+                    <div className="text-success fw-bold mt-2">
+                      Auction active
+                    </div>
                   )}
                 </div>
               </div>
