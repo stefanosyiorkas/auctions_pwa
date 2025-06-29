@@ -125,6 +125,11 @@ export default function Auctions({ canCreate }) {
     }
   };
 
+  // Handler to update unread count from MessagesScreen
+  const handleUnreadCountChange = (count) => {
+    setNewMsgCount(count);
+  };
+
   return (
     <div className="container py-5">
       <div className="d-flex justify-content-between align-items-center mb-4">

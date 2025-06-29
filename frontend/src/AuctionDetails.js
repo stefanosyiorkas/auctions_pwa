@@ -232,11 +232,14 @@ export default function AuctionDetails({ isAuthenticated }) {
               </span>
               <span className="text-muted small">
                 {bid.timestamp
-                  ? new Date(
-                      bid.timestamp
-                        .replace(" ", "T")
-                        .replace(/\.(\d{3})\d*/, ".$1")
-                    ).toLocaleString()
+                  ? (() => {
+                      // Ensure UTC parsing: append 'Z' if not present
+                      let ts = bid.timestamp;
+                      if (!ts.endsWith('Z') && !/[+-]\d{2}:?\d{2}$/.test(ts)) {
+                        ts += 'Z';
+                      }
+                      return new Date(ts).toLocaleString();
+                    })()
                   : "-"}
               </span>
             </li>

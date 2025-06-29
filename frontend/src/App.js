@@ -12,10 +12,12 @@ import {
   Routes,
   Route,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 
 function MainApp({ role, handleLogout }) {
   const navigate = useNavigate();
+  const location = useLocation();
   // Helper to get cookie value by name
   function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -24,6 +26,10 @@ function MainApp({ role, handleLogout }) {
     return null;
   }
   const username = getCookie("username");
+
+  // Unread count state lifted up
+  const [unreadCount, setUnreadCount] = React.useState(0);
+
   return (
     <div className="container-fluid min-vh-100 bg-light p-0">
       <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
@@ -71,14 +77,20 @@ function MainApp({ role, handleLogout }) {
       </nav>
       <main>
         <Routes>
-          <Route path="/" element={<Auctions canCreate={false} />} />
+          <Route
+            path="/"
+            element={<Auctions canCreate={false} newMsgCount={unreadCount} />}
+          />
           <Route
             path="/auctions/:id"
             element={<AuctionDetails isAuthenticated={role === "user"} />}
           />
           <Route path="/manage" element={<ManageAuctions />} />
           <Route path="/create" element={<CreateAuction />} />
-          <Route path="/messages" element={<MessagesScreen />} />
+          <Route
+            path="/messages"
+            element={<MessagesScreen onUnreadCountChange={setUnreadCount} />}
+          />
           <Route
             path="/messages/compose/:recipient/:auctionId"
             element={<MessageComposeWrapper />}
